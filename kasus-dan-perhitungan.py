@@ -6,11 +6,10 @@ import matplotlib.pyplot as plt
 st.title("📊 Industrial Decision Support System")
 
 # Membuat Tabs
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3 = st.tabs([
     "Optimasi Produksi (LP)", 
     "Model Persediaan (EOQ)", 
     "Model Antrian (M/M/1)",
-    "Titik Impas (Break-Even Point)"
 ])
 
 # Tab 1: Linear Programming
