@@ -15,7 +15,7 @@ tab1, tab2, tab3 = st.tabs([
 # Tab 1: Linear Programming
 with tab1:
     st.header("🔧 Optimasi Produksi (Linear Programming)")
-    st.write("**Studi Kasus:** Pabrik memproduksi dua produk (A dan B) dengan sumber daya terbatas.")
+    st.write("**Studi Kasus:** Pabrik memproduksi dua produk Gitar dan Drum (A dan B) dengan sumber daya terbatas.")
 
     st.markdown("""
     - Produk A: 1 jam kerja, 3 bahan baku per unit
