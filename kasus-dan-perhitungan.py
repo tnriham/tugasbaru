@@ -1,109 +1,93 @@
 import streamlit as st
 import numpy as np
-from scipy.optimize import linprog
 import matplotlib.pyplot as plt
 
-st.title("📊 Industrial Decision Support System")
+st.set_page_config(page_title="EOQ Calculator", page_icon="📦")
 
-# Membuat Tabs
-tab1, tab2, tab3 = st.tabs([
-    "Optimasi Produksi (LP)", 
-    "Model Persediaan (EOQ)", 
-    "Model Antrian (M/M/1)"
-])
+st.title("📦 Aplikasi Perhitungan EOQ (Economic Order Quantity)")
+st.markdown("Simulasi sistem persediaan barang untuk menentukan jumlah pemesanan optimal (EOQ).")
 
-# Tab 1: Linear Programming
+tab1, tab2 = st.tabs(["🔢 Input Manual", "📘 Studi Kasus Budi Jaya"])
+
+# Tab 1 – Input Manual
 with tab1:
-    st.header("🔧 Optimasi Produksi (Linear Programming)")
-    st.write("**Studi Kasus:** Pabrik memproduksi dua produk (A dan B) dengan sumber daya terbatas.")
-    
-    st.markdown("""
-    - Produk A: 1 jam kerja, 3 bahan baku per unit  
-    - Produk B: 2 jam kerja, 1 bahan baku per unit  
-    - Tersedia: 40 jam kerja dan 100 unit bahan baku  
-    - Profit: Rp30.000/unit (A), Rp20.000/unit (B)
-    """)
-    
-    st.latex(r"""
-    \text{Maksimalkan: } Z = 30000A + 20000B
-    """)
-    st.latex(r"""
-    \text{Kendala:} \\
-    A + 2B \leq 40 \quad \text{(Jam kerja)} \\
-    3A + B \leq 100 \quad \text{(Bahan baku)} \\
-    A, B \geq 0
-    """)
+    st.header("Masukkan Data Persediaan Anda")
 
-    if st.button("Hitung Produksi Optimal"):
-        c = [-30000, -20000]
-        A = [[1, 2], [3, 1]]
-        b = [40, 100]
-        res = linprog(c, A_ub=A, b_ub=b, method='highs')
-        if res.success:
-            st.success(f"Produksi Optimal:\nProduk A: {res.x[0]:.2f} unit\nProduk B: {res.x[1]:.2f} unit")
-            st.write(f"Keuntungan Maksimal: Rp{(-res.fun):,.0f}")
-        else:
-            st.error("Solusi tidak ditemukan.")
+    D = st.number_input("Permintaan Tahunan (unit)", min_value=1, value=5000)
+    S = st.number_input("Biaya Pemesanan per Pesanan (Rp)", min_value=1.0, value=75000.0)
+    H = st.number_input("Biaya Penyimpanan per Unit per Tahun (Rp)", min_value=1.0, value=1500.0)
 
-# Tab 2: EOQ
+    EOQ = np.sqrt((2 * D * S) / H)
+    num_orders = D / EOQ
+    total_cost = (D / EOQ) * S + (EOQ / 2) * H
+
+    st.subheader("📈 Hasil Perhitungan")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("EOQ (unit)", f"{EOQ:.2f}")
+    col2.metric("Jumlah Pesanan per Tahun", f"{num_orders:.2f}")
+    col3.metric("Total Biaya Persediaan", f"Rp {total_cost:,.2f}")
+
+    # Grafik
+    st.subheader("📉 Grafik Total Biaya vs Kuantitas Pemesanan")
+    Q_range = np.linspace(1, EOQ * 2, 100)
+    total_costs = (D / Q_range) * S + (Q_range / 2) * H
+
+    fig, ax = plt.subplots()
+    ax.plot(Q_range, total_costs, label='Total Cost', color='blue')
+    ax.axvline(EOQ, color='red', linestyle='--', label=f'EOQ = {EOQ:.2f}')
+    ax.set_xlabel('Jumlah Pemesanan (Q)')
+    ax.set_ylabel('Total Biaya (Rp)')
+    ax.set_title('Grafik Total Biaya vs Jumlah Pemesanan')
+    ax.legend()
+    ax.grid(True)
+    st.pyplot(fig)
+
+# Tab 2 – Studi Kasus
 with tab2:
-    st.header("📦 Model Persediaan EOQ (Economic Order Quantity)")
-    st.write("**Studi Kasus:** Toko elektronik menjual 1.000 kipas angin/tahun.")
+    st.header("📘 Studi Kasus: Toko Elektronik Budi Jaya")
+    st.write("""
+    Toko Budi Jaya menjual lampu pintar. Berikut data tahunannya:
+    - Permintaan tahunan (D): 2.400 unit
+    - Biaya pemesanan per pesanan (S): Rp 100.000
+    - Biaya penyimpanan per unit per tahun (H): Rp 2.000
+    """)
 
+    D2 = 2400
+    S2 = 100000
+    H2 = 2000
+
+    EOQ2 = np.sqrt((2 * D2 * S2) / H2)
+    num_orders2 = D2 / EOQ2
+    total_cost2 = (D2 / EOQ2) * S2 + (EOQ2 / 2) * H2
+
+    st.subheader("📊 Hasil Perhitungan Studi Kasus")
+    st.write(f"**EOQ:** {EOQ2:.2f} unit")
+    st.write(f"**Jumlah Pemesanan per Tahun:** {num_orders2:.2f} kali")
+    st.write(f"**Total Biaya Persediaan:** Rp {total_cost2:,.2f}")
+
+    # Grafik
+    st.subheader("📉 Grafik Total Biaya vs Kuantitas Pemesanan")
+    Q_range2 = np.linspace(1, EOQ2 * 2, 100)
+    total_costs2 = (D2 / Q_range2) * S2 + (Q_range2 / 2) * H2
+
+    fig2, ax2 = plt.subplots()
+    ax2.plot(Q_range2, total_costs2, label='Total Cost', color='green')
+    ax2.axvline(EOQ2, color='red', linestyle='--', label=f'EOQ = {EOQ2:.2f}')
+    ax2.set_xlabel('Jumlah Pemesanan (Q)')
+    ax2.set_ylabel('Total Biaya (Rp)')
+    ax2.set_title('Grafik Total Biaya vs Jumlah Pemesanan')
+    ax2.legend()
+    ax2.grid(True)
+    st.pyplot(fig2)
+
+# Penjelasan Rumus
+with st.expander("ℹ️ Penjelasan Rumus EOQ"):
+    st.latex(r'''EOQ = \sqrt{\frac{2DS}{H}}''')
     st.markdown("""
-    - Permintaan tahunan (D) = 1.000 unit  
-    - Biaya pemesanan (S) = Rp50.000  
-    - Biaya penyimpanan per unit/tahun (H) = Rp2.000
+    - **D** = Permintaan tahunan (unit)
+    - **S** = Biaya pemesanan per pesanan
+    - **H** = Biaya penyimpanan per unit per tahun
+    
+    **Total Biaya Persediaan:**
     """)
-
-    st.latex(r"""
-    EOQ = \sqrt{\frac{2DS}{H}}
-    """)
-
-    D = st.number_input("Permintaan tahunan (D)", value=1000)
-    S = st.number_input("Biaya pemesanan (S)", value=50000)
-    H = st.number_input("Biaya penyimpanan/unit/tahun (H)", value=2000)
-
-    if st.button("Hitung EOQ"):
-        eoq = np.sqrt((2 * D * S) / H)
-        st.success(f"EOQ = {eoq:.2f} unit per pesanan")
-
-# Tab 3: Antrian M/M/1
-with tab3:
-    st.header("⏳ Model Antrian (M/M/1)")
-    st.write("**Studi Kasus:** Kasir minimarket dengan kedatangan 2 pelanggan/menit dan pelayanan 5 pelanggan/menit.")
-
-    st.markdown("""
-    - λ (laju kedatangan) = 2 pelanggan/menit  
-    - μ (laju pelayanan) = 5 pelanggan/menit  
-    """)
-
-    st.latex(r"""
-    \rho = \frac{\lambda}{\mu}, \quad 
-    L = \frac{\rho}{1 - \rho}, \quad 
-    L_q = \frac{\rho^2}{1 - \rho}
-    """)
-    st.latex(r"""
-    W = \frac{1}{\mu - \lambda}, \quad 
-    W_q = \frac{\rho}{\mu - \lambda}
-    """)
-
-    lambd = st.number_input("Laju kedatangan (λ)", value=2.0)
-    mu = st.number_input("Laju pelayanan (μ)", value=5.0)
-
-    if st.button("Hitung Kinerja Antrian"):
-        if lambd < mu:
-            rho = lambd / mu
-            L = rho / (1 - rho)
-            Lq = rho**2 / (1 - rho)
-            W = 1 / (mu - lambd)
-            Wq = rho / (mu - lambd)
-
-            st.success("Sistem Stabil (λ < μ)")
-            st.write(f"Utilisasi Sistem (ρ): {rho:.2f}")
-            st.write(f"Rata-rata pelanggan dalam sistem (L): {L:.2f}")
-            st.write(f"Rata-rata dalam antrean (Lq): {Lq:.2f}")
-            st.write(f"Rata-rata waktu dalam sistem (W): {W:.2f} menit")
-            st.write(f"Rata-rata waktu antrean (Wq): {Wq:.2f} menit")
-        else:
-            st.error("Sistem tidak stabil (λ ≥ μ)")
+    st.latex(r'''TC = \left( \frac{D}{EOQ} \times S \right) + \left( \frac{EOQ}{2} \times H \right)''')
