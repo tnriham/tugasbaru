@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="EOQ Calculator", page_icon="📦")
-
 st.title("📦 Aplikasi Perhitungan EOQ (Economic Order Quantity)")
 st.markdown("Simulasi sistem persediaan barang untuk menentukan jumlah pemesanan optimal (EOQ).")
 
@@ -30,7 +29,7 @@ with tab1:
         col1.metric("EOQ (unit)", f"{EOQ:.2f}")
         col2.metric("Jumlah Pesanan/Tahun", f"{num_orders:.2f}")
         col3.metric("Total Biaya Persediaan", f"Rp {total_cost:,.2f}")
-        st.metric("Laba Total", f"Rp {profit_total:,.2f}", delta_color="normal" if profit_total >= 0 else "inverse")
+        st.metric("Laba Total", f"Rp {profit_total:,.2f}")
 
         # Grafik Biaya
         st.subheader("📉 Grafik Komponen Biaya vs Jumlah Pemesanan")
@@ -69,6 +68,21 @@ with tab1:
         ax2.grid(True)
         st.pyplot(fig2)
 
+        # Grafik Khusus Zona Untung/Rugi
+        st.subheader("💰 Zona Untung dan Rugi terhadap Jumlah Pemesanan")
+        fig3, ax3 = plt.subplots()
+        ax3.plot(Q_range, profit_range, label="Laba Total", color="blue")
+        ax3.axvline(EOQ, color="red", linestyle=":", label=f'EOQ = {EOQ:.2f} unit')
+        ax3.axhline(0, color="black", linestyle="--")
+        ax3.fill_between(Q_range, profit_range, 0, where=profit_range > 0, interpolate=True, color='lightgreen', alpha=0.4, label="Zona Untung")
+        ax3.fill_between(Q_range, profit_range, 0, where=profit_range < 0, interpolate=True, color='salmon', alpha=0.4, label="Zona Rugi")
+        ax3.set_xlabel("Jumlah Pemesanan (Q)")
+        ax3.set_ylabel("Laba Total (Rp)")
+        ax3.set_title("Visualisasi Zona Untung dan Rugi")
+        ax3.legend()
+        ax3.grid(True)
+        st.pyplot(fig3)
+
     else:
         st.error("Semua input harus lebih besar dari nol!")
 
@@ -101,41 +115,56 @@ with tab2:
     st.write(f"**Laba Total:** Rp {profit_total2:,.2f}")
 
     # Grafik Biaya
-    st.subheader("📉 Grafik Komponen Biaya vs Jumlah Pemesanan")
     Q_range2 = np.linspace(1, EOQ2 * 2, 100)
     ordering_cost2 = (D2 / Q_range2) * S2
     holding_cost2 = (Q_range2 / 2) * H2
     total_costs2 = ordering_cost2 + holding_cost2
 
-    fig3, ax3 = plt.subplots()
-    ax3.plot(Q_range2, ordering_cost2, label='Biaya Pemesanan', color='orange', linestyle='--')
-    ax3.plot(Q_range2, holding_cost2, label='Biaya Penyimpanan', color='green', linestyle='--')
-    ax3.plot(Q_range2, total_costs2, label='Total Biaya', color='blue')
-    ax3.axvline(EOQ2, color='red', linestyle=':', label=f'EOQ = {EOQ2:.2f}')
-    ax3.set_xlabel('Jumlah Pemesanan (Q)')
-    ax3.set_ylabel('Biaya (Rp)')
-    ax3.set_title('Grafik Komponen Biaya vs Jumlah Pemesanan')
-    ax3.legend()
-    ax3.grid(True)
-    st.pyplot(fig3)
-
-    # Grafik Laba
-    st.subheader("📈 Grafik Laba Total vs Jumlah Pemesanan")
-    unit_costs2 = total_costs2 / D2
-    profit_range2 = D2 * (P2 - unit_costs2)
-
+    st.subheader("📉 Grafik Komponen Biaya vs Jumlah Pemesanan")
     fig4, ax4 = plt.subplots()
-    ax4.plot(Q_range2, profit_range2, label='Laba Total', color='purple')
-    ax4.axhline(0, color='gray', linestyle='--')
+    ax4.plot(Q_range2, ordering_cost2, label='Biaya Pemesanan', color='orange', linestyle='--')
+    ax4.plot(Q_range2, holding_cost2, label='Biaya Penyimpanan', color='green', linestyle='--')
+    ax4.plot(Q_range2, total_costs2, label='Total Biaya', color='blue')
     ax4.axvline(EOQ2, color='red', linestyle=':', label=f'EOQ = {EOQ2:.2f}')
-    ax4.fill_between(Q_range2, profit_range2, 0, where=(profit_range2 > 0), color='lightgreen', alpha=0.3, label='Untung')
-    ax4.fill_between(Q_range2, profit_range2, 0, where=(profit_range2 < 0), color='salmon', alpha=0.3, label='Rugi')
     ax4.set_xlabel('Jumlah Pemesanan (Q)')
-    ax4.set_ylabel('Laba Total (Rp)')
-    ax4.set_title('Grafik Laba vs Jumlah Pemesanan')
+    ax4.set_ylabel('Biaya (Rp)')
+    ax4.set_title('Grafik Komponen Biaya vs Jumlah Pemesanan')
     ax4.legend()
     ax4.grid(True)
     st.pyplot(fig4)
+
+    # Grafik Laba
+    unit_costs2 = total_costs2 / D2
+    profit_range2 = D2 * (P2 - unit_costs2)
+
+    st.subheader("📈 Grafik Laba Total vs Jumlah Pemesanan")
+    fig5, ax5 = plt.subplots()
+    ax5.plot(Q_range2, profit_range2, label='Laba Total', color='purple')
+    ax5.axhline(0, color='gray', linestyle='--')
+    ax5.axvline(EOQ2, color='red', linestyle=':', label=f'EOQ = {EOQ2:.2f}')
+    ax5.fill_between(Q_range2, profit_range2, 0, where=(profit_range2 > 0), color='lightgreen', alpha=0.3, label='Untung')
+    ax5.fill_between(Q_range2, profit_range2, 0, where=(profit_range2 < 0), color='salmon', alpha=0.3, label='Rugi')
+    ax5.set_xlabel('Jumlah Pemesanan (Q)')
+    ax5.set_ylabel('Laba Total (Rp)')
+    ax5.set_title('Grafik Laba vs Jumlah Pemesanan')
+    ax5.legend()
+    ax5.grid(True)
+    st.pyplot(fig5)
+
+    # Grafik Khusus Zona Untung/Rugi
+    st.subheader("💰 Zona Untung dan Rugi terhadap Jumlah Pemesanan")
+    fig6, ax6 = plt.subplots()
+    ax6.plot(Q_range2, profit_range2, label="Laba Total", color="blue")
+    ax6.axvline(EOQ2, color="red", linestyle=":", label=f'EOQ = {EOQ2:.2f} unit')
+    ax6.axhline(0, color="black", linestyle="--")
+    ax6.fill_between(Q_range2, profit_range2, 0, where=profit_range2 > 0, interpolate=True, color='lightgreen', alpha=0.4, label="Zona Untung")
+    ax6.fill_between(Q_range2, profit_range2, 0, where=profit_range2 < 0, interpolate=True, color='salmon', alpha=0.4, label="Zona Rugi")
+    ax6.set_xlabel("Jumlah Pemesanan (Q)")
+    ax6.set_ylabel("Laba Total (Rp)")
+    ax6.set_title("Visualisasi Zona Untung dan Rugi")
+    ax6.legend()
+    ax6.grid(True)
+    st.pyplot(fig6)
 
 # ---------------------------- Penjelasan Rumus ----------------------------
 with st.expander("ℹ️ Penjelasan Rumus EOQ"):
@@ -148,8 +177,4 @@ with st.expander("ℹ️ Penjelasan Rumus EOQ"):
     **Total Biaya Persediaan (TC):**
     """)
     st.latex(r'''TC = \left( \frac{D}{Q} \times S \right) + \left( \frac{Q}{2} \times H \right)''')
-
-    st.markdown("""
-    **Laba Total = D × (Harga Jual - Biaya per Unit)**  
-    Zona untung dan rugi dapat dilihat pada grafik laba vs jumlah pemesanan.
-    """)
+    st.markdown("""**Laba Total = D × (Harga Jual - Biaya per Unit)**""")
